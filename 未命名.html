@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>我的待办</title>
+  <style>
+    body { font-family: sans-serif; max-width: 420px; margin: 40px auto; }
+    input { padding: 8px; width: 65%; }
+    button { padding: 8px 12px; cursor: pointer; }
+    .filters { margin: 16px 0; }
+    .filters button.active { background: #333; color: #fff; }
+    ul { padding: 0; list-style: none; }
+    li { display: flex; justify-content: space-between; align-items: center;
+         padding: 8px 0; border-bottom: 1px solid #eee; }
+    li span { cursor: pointer; flex: 1; }
+    li.done span { text-decoration: line-through; color: #999; }
+    li button { background: none; border: none; color: #c00; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>待办清单</h1>
+  <input id="box" placeholder="输入要做的事">
+  <button onclick="addTask()">添加</button>
+
+  <div class="filters">
+    <button data-f="all" class="active" onclick="setFilter('all')">全部</button>
+    <button data-f="todo" onclick="setFilter('todo')">未完成</button>
+    <button data-f="done" onclick="setFilter('done')">已完成</button>
+  </div>
+
+  <ul id="list"></ul>
+
+  <script>
+    let tasks = [];        // 所有待办，每项形如 { id, text, done }
+    let filter = "all";    // 当前筛选：all / todo / done
+
+    function addTask() {
+      const box = document.getElementById("box");
+      const text = box.value.trim();
+      if (text === "") return;
+      tasks.push({ id: Date.now(), text: text, done: false });
+      box.value = "";
+      render();
+    }
+
+    function toggleTask(id) {
+      const t = tasks.find(t => t.id === id);
+      t.done = !t.done;
+      render();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      render();
+    }
+
+    function setFilter(f) {
+      filter = f;
+      document.querySelectorAll(".filters button").forEach(b => {
+        b.classList.toggle("active", b.dataset.f === f);
+      });
+      render();
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      const shown = tasks.filter(t =>
+        filter === "all" ? true : filter === "done" ? t.done : !t.done
+      );
+      shown.forEach(t => {
+        const li = document.createElement("li");
+        if (t.done) li.className = "done";
+
+        const span = document.createElement("span");
+        span.textContent = t.text;
+        span.onclick = () => toggleTask(t.id);
+
+        const del = document.createElement("button");
+        del.textContent = "✕";
+        del.onclick = () => deleteTask(t.id);
+
+        li.append(span, del);
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById("box").addEventListener("keydown", e => {
+      if (e.key === "Enter") addTask();
+    });
+  </script>
+</body>
+</html>
